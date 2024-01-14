@@ -1,6 +1,7 @@
 class HomeViewState {
 
   String? status;
+  List<String> peers = [];
 
   HomeViewState();
 

@@ -27,9 +27,34 @@ class _HomeScreenState extends BaseStateful<HomeScreen, HomeViewModel> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          const Text(
-            'You have pushed the button this many times:',
-          ),
+          Consumer<HomeViewModel>(builder: (_, homeViewModel, __) {
+            return SizedBox(
+              height: 200.0,
+              child: ListView.builder(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: homeViewModel.state.peers.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    var item = homeViewModel.state.peers[index];
+                    var isMe = homeViewModel.isMe(item);
+                    var color = Colors.amber;
+                    var name = "Client: $item";
+                    if(isMe){
+                      color = Colors.red;
+                      name = "Me: $item";
+                    }
+                    return Container(
+                      height: 50,
+                      color: color,
+                      child: TextButton(
+                          onPressed: () {
+                            viewModel.connect(item);
+                          },
+                          child: Center(
+                              child: Text(name))),
+                    );
+                  }),
+            );
+          }),
           Consumer<HomeViewModel>(builder: (_, homeViewModel, __) {
             return Text(
               homeViewModel.state.getStatus(),
@@ -38,22 +63,16 @@ class _HomeScreenState extends BaseStateful<HomeScreen, HomeViewModel> {
           }),
           TextButton(
               onPressed: () {
-                  viewModel.connect();
+                viewModel.start();
               },
-              child: const Text('Connect')
-          ),
+              child: const Text('Connect')),
           TextButton(
               onPressed: () {
                 viewModel.disconnect();
               },
-              child: const Text('Disconnect')
-          )
+              child: const Text('Disconnect'))
         ],
       ),
     );
   }
-
-
-
-  
 }

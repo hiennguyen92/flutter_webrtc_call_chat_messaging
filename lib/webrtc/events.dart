@@ -15,7 +15,6 @@ enum SocketEventType {
 
   const SocketEventType(this.type);
   final String type;
-
 }
 
 enum MessageType {
@@ -40,3 +39,13 @@ enum APIType {
   const APIType(this.type);
   final String type;
 }
+
+enum SerializationType {
+  Binary("binary"),
+  JSON("json");
+
+  const SerializationType(this.type);
+  final String type;
+}
+
+enum DataChannels { binary, data }

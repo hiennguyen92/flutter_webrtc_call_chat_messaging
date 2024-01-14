@@ -27,7 +27,7 @@ class _SplashScreenState extends State<SplashScreen>
         CurvedAnimation(parent: _controller, curve: Curves.bounceInOut);
     _controller.forward();
     SchedulerBinding.instance?.addPostFrameCallback((timeStamp) {
-      Future.delayed(const Duration(seconds: 5), () {
+      Future.delayed(const Duration(seconds: 2), () {
         Provider.of<NavigationService>(context, listen: false)
             .pushNamedAndRemoveUntil(AppRoute.homeScreen, args: {'isWithoutAnimation': true});
       });
