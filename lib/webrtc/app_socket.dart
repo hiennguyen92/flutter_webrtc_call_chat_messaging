@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'package:events_emitter/emitters/stream_event_emitter.dart';
+import 'package:flutter_webrtc_call_chat_messaging/webrtc/app_events.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/events.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -19,7 +20,7 @@ class AppSocket extends StreamEventEmitter {
 
   void start(String id, String token) {
     _id = id;
-
+    print("MY ID: $_id");
     final wsUrl = "$_baseUrl&id=$id&token=$token&version=1";
 
     if (_connected) {
@@ -37,19 +38,19 @@ class AppSocket extends StreamEventEmitter {
       } catch (error) {
         print("Invalid message: $event");
       }
-      emit<Map<String, dynamic>>(SocketEventType.Message.type, data);
+      emit<Map<String, dynamic>>(SocketEvent.Message.type, data);
     }, onDone: () {
       print("Socket closed.");
       _connected = false;
       try {
-        emit<String?>(SocketEventType.Disconnected.type, _id);
+        emit<String?>(SocketEvent.Disconnected.type, _id);
       } catch (error) {
       } finally {}
     }, onError: (error) {
       _connected = false;
       print("Socket error: $error");
       try {
-        emit<String>(SocketEventType.Error.type, "Invalid socket");
+        emit<String>(SocketEvent.Error.type, "Invalid socket");
       } catch (error) {
       } finally {}
     });
@@ -71,7 +72,7 @@ class AppSocket extends StreamEventEmitter {
       return;
     }
     final message = jsonEncode({"type": MessageType.Heartbeat.type});
-    print("Send heartbeat.");
+    //print("Send heartbeat.");
     _socket?.sink.add(message);
 
     _scheduleHeartbeat();
@@ -107,7 +108,7 @@ class AppSocket extends StreamEventEmitter {
     }
 
     if (data["type"] == null) {
-      emit<String>(SocketEventType.Error.type, "Invalid message, missing type");
+      emit<String>(SocketEvent.Error.type, "Invalid message, missing type");
       return;
     }
 

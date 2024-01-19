@@ -1,9 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc_call_chat_messaging/base/base_view_model.dart';
 import 'package:flutter_webrtc_call_chat_messaging/view_states/home_view_state.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/app_events.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/app_webrtc.dart';
-import 'package:flutter_webrtc_call_chat_messaging/webrtc/dataconnection.dart';
+import 'package:flutter_webrtc_call_chat_messaging/webrtc/data_connection.dart';
 
 class HomeViewModel extends BaseViewModel<HomeViewState> {
   late final AppWebRTC _appWebRTC;
@@ -14,20 +16,35 @@ class HomeViewModel extends BaseViewModel<HomeViewState> {
   }
 
   void _onEventListeners() {
-    _appWebRTC.on(AppEvent.Connected.type).listen((event) {
+    _appWebRTC.on(SocketEvent.Connected.type).listen((event) {
       state.status = "Connected";
       _getPeers();
       notifyListeners();
     });
-    _appWebRTC.on(AppEvent.Disconnected.type).listen((event) {
+    _appWebRTC.on(SocketEvent.Disconnected.type).listen((event) {
       state.status = "Disconnected";
       _getPeers();
       notifyListeners();
     });
-    _appWebRTC.on(AppEvent.Error.type).listen((event) {
+    _appWebRTC.on(SocketEvent.Error.type).listen((event) {
       state.status = "Error";
       _getPeers();
       notifyListeners();
+    });
+    _appWebRTC
+        .on<DataConnection>(DataConnectionEvent.Connection.type)
+        .listen((conn) {
+      print("nhan duoc connected");
+      conn.on<DataConnection>("open").listen((event) {
+        // print("ON OPEN");
+        // event.send({"data": 'hello'});
+      });
+      conn.on("data").listen((event) {
+        print("received data: $event");
+      });
+      conn.on<Uint8List>("binary").listen((event) {
+        print("received binary: $event");
+      });
     });
   }
 
@@ -47,17 +64,15 @@ class HomeViewModel extends BaseViewModel<HomeViewState> {
 
   Future<void> connect(String peer) async {
     var conn = _appWebRTC.connect(peer);
-    conn.on<DataConnection>("connection").listen((event) {
-      print("ON connection");
-    });
-    conn.on("open").listen((event) {
-      print("ON open");
+    conn.on<DataConnection>("open").listen((event) {
+      print("ON OPEN");
+      event.send({"data": 'hello'});
     });
     conn.on("data").listen((event) {
-      print("ON data");
+      print("received data: $event");
     });
-    conn.on("binary").listen((event) {
-      print("ON binary");
+    conn.on<Uint8List>("binary").listen((event) {
+      print("received binary: $event");
     });
   }
 
@@ -66,6 +81,6 @@ class HomeViewModel extends BaseViewModel<HomeViewState> {
   }
 
   bool isMe(String peer) {
-    return _appWebRTC.socket.getId() == peer;
+    return _appWebRTC.getCurrentId() == peer;
   }
 }

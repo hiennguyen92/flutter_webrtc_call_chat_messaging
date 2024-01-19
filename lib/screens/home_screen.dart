@@ -28,9 +28,9 @@ class _HomeScreenState extends BaseStateful<HomeScreen, HomeViewModel> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Consumer<HomeViewModel>(builder: (_, homeViewModel, __) {
-            return SizedBox(
-              height: 200.0,
+            return Flexible(
               child: ListView.builder(
+                  shrinkWrap: true,
                   padding: const EdgeInsets.all(8),
                   itemCount: homeViewModel.state.peers.length,
                   itemBuilder: (BuildContext context, int index) {
@@ -50,7 +50,7 @@ class _HomeScreenState extends BaseStateful<HomeScreen, HomeViewModel> {
                             viewModel.connect(item);
                           },
                           child: Center(
-                              child: Text(name))),
+                              child: Text(name, style: const TextStyle( fontSize: 12 )))),
                     );
                   }),
             );

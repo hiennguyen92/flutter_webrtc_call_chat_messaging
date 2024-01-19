@@ -1,14 +1,11 @@
-import 'dart:convert';
-
 import 'package:events_emitter/emitters/stream_event_emitter.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/app_api.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/app_events.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/app_socket.dart';
-import 'package:flutter_webrtc_call_chat_messaging/webrtc/baseconnecttion.dart';
-import 'package:flutter_webrtc_call_chat_messaging/webrtc/dataconnection.dart';
+import 'package:flutter_webrtc_call_chat_messaging/webrtc/base_connection.dart';
+import 'package:flutter_webrtc_call_chat_messaging/webrtc/data_connection.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/events.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/message.dart';
-import 'package:flutter_webrtc_call_chat_messaging/webrtc/options.dart';
 
 class AppWebRTC extends StreamEventEmitter {
   late AppAPI _api;
@@ -33,27 +30,20 @@ class AppWebRTC extends StreamEventEmitter {
       _api
           .getId()
           .then((value) => _socket.start(value, token))
-          .catchError((error) => emit<dynamic>(APIType.Error.type, error));
+          .catchError((error) => emit<dynamic>(SocketEvent.Error.type, error));
     }
   }
 
   void _onSocketEvent() {
-    _socket
-        .on<Map<String, dynamic>>(SocketEventType.Message.type)
-        .listen((event) {
-      //Handle Message
+    _socket.on<Map<String, dynamic>>(SocketEvent.Message.type).listen((event) {
       final message = Message.fromMap(event);
       _handleMessage(message);
     });
-    _socket.on<String>(SocketEventType.Error.type).listen((event) {
-      //Handle Error
-      print("SOCKET ERROR");
-      emit<String?>(AppEvent.Error.type, "error");
+    _socket.on<String>(SocketEvent.Error.type).listen((event) {
+      emit<String?>(SocketEvent.Error.type, "error");
     });
-    _socket.on(SocketEventType.Disconnected.type).listen((event) {
-      //Handle Disconnected
-      print("SOCKET DISCONNECTED");
-      emit<String?>(AppEvent.Disconnected.type, "disconnected");
+    _socket.on(SocketEvent.Disconnected.type).listen((event) {
+      emit<String?>(SocketEvent.Disconnected.type, "disconnected");
     });
   }
 
@@ -64,7 +54,7 @@ class AppWebRTC extends StreamEventEmitter {
 
     switch (type) {
       case MessageType.Open:
-        emit<String?>(AppEvent.Connected.type, "open");
+        emit<String?>(SocketEvent.Connected.type, "open");
         break;
       case MessageType.Error:
         print("ERROR ERROR");
@@ -83,67 +73,42 @@ class AppWebRTC extends StreamEventEmitter {
         break;
       case MessageType.Offer:
         print("OFFER $peerId $payload");
-        print("XXX ${payload["connectionId"]}");
-        final connectionId = payload["connectionId"];
-        if (peerId != null) {
-          DataConnection? connection = getConnection(peerId, connectionId);
-          if (connection != null) {
-            connection.close();
-            print(
-              "Offer received for existing Connection ID:$connectionId",
-            );
-          }
-          if (payload["type"] == ConnectionType.Data.type) {
-
-            final serializedPayload = PeerConnectOption.fromMap(payload);
-
-            final data = PeerConnectOption(
-              connectionId: connectionId,
-              payload: serializedPayload,
-              metadata: payload["metadata"],
-              label: payload["label"],
-              serialization: SerializationType.values.singleWhere(
-                      (element) => element.type == payload["serialization"]),
-              reliable: payload["reliable"],
-            );
-
-
-            connection = DataConnection(peerId, this, data);
-            _addConnection(peerId, dataConnection: connection);
-            emit<DataConnection>("connection", connection);
-          } else {
-            print("Received malformed connection type:${payload.type}");
-            return;
-          }
-          // Find messages.
-          final messages = getMessages(connectionId);
-          for (var message in messages) {
-            connection.handleMessage(message);
-          }
+        final connection = getConnection(peerId!, message);
+        if (connection != null) {
+          connection.close();
+          removeConnection(connection);
+          print(
+            "Offer received for existing Connection ID:${payload['connectionId']}",
+          );
+        }
+        //Create Connection
+        DataConnection dataConnection = DataConnection(peerId, this, payload);
+        _addConnection(peerId, dataConnection: dataConnection);
+        dataConnection.handleOffer(message);
+        break;
+      case MessageType.Answer:
+        if (payload == null) {
+          print("You received a message from $peerId of type $type");
+          return;
+        }
+        print("ANSWER $peerId $payload");
+        BaseConnection? connection = getConnection(peerId!, message);
+        if (connection != null && connection.peerConnection != null) {
+          connection.handleAnswer(message);
+        }
+        break;
+      case MessageType.Candidate:
+        if (payload == null) {
+          print("You received a message from $peerId of type $type");
+          return;
+        }
+        BaseConnection? connection = getConnection(peerId!, message);
+        if (connection != null && connection.peerConnection != null) {
+          connection.handleCandidate(message);
         }
         break;
       default:
-        {
-          if (payload == null) {
-            print(
-              "You received a malformed message from $peerId of type $type",
-            );
-            return;
-          }
-
-          final connectionId = payload["connectionId"];
-          DataConnection connection = getConnection(peerId!, connectionId);
-
-          if (connection != null && connection.peerConnection != null) {
-            // Pass it on.
-            connection.handleMessage(message);
-          } else if (connectionId != null) {
-            // Store for possible later use
-            _storeMessage(connectionId, message);
-          } else {
-            print("You received an unrecognized message:$message");
-          }
-        }
+        print("You received a malformed message from $peerId of type $type");
     }
   }
 
@@ -155,12 +120,16 @@ class AppWebRTC extends StreamEventEmitter {
     return _api;
   }
 
+  String? getCurrentId() {
+    return socket.getId();
+  }
+
   void disconnect() {
     _socket.disconnect();
   }
 
   void dispose() {
-    emit<String?>(SocketEventType.Disconnected.type, _socket.getId());
+    emit<String?>(SocketEvent.Disconnected.type, _socket.getId());
     _socket.dispose();
     _cleanup();
   }
@@ -177,14 +146,14 @@ class AppWebRTC extends StreamEventEmitter {
     }
   }
 
-  DataConnection connect(String peer, {PeerConnectOption? options}) {
+  DataConnection connect(String peer, {dynamic payload}) {
     if (!_socket.isConnected()) {
       print(
         'You cannot connect to a new Peer because you called .disconnect() on this Peer and ended your connection with the server. You can create a new Peer to reconnect, or call reconnect on this peer if you believe its ID to still be available.',
       );
     }
-    final dataConnection =
-        DataConnection(peer, this, options);
+    final dataConnection = DataConnection(peer, this, payload);
+    dataConnection.makeOffer();
     _addConnection(peer, dataConnection: dataConnection);
     return dataConnection;
   }
@@ -223,7 +192,8 @@ class AppWebRTC extends StreamEventEmitter {
   }
 
   /// Retrieve a data/media connection for this peer. */
-  dynamic getConnection(String peerId, String connectionId) {
+  dynamic getConnection(String peerId, Message message) {
+    final payload = message.payload;
     if (!_connections.containsKey(peerId)) {
       print("Could not get connection with id: $peerId");
       return null;
@@ -232,7 +202,7 @@ class AppWebRTC extends StreamEventEmitter {
 
     if (connections != null) {
       for (final connection in connections) {
-        if (connection.connectionId == connectionId) {
+        if (connection.connectionId == payload['connectionId']) {
           return connection;
         }
       }
@@ -250,25 +220,4 @@ class AppWebRTC extends StreamEventEmitter {
     }
   }
 
-  /// Stores messages without a set up connection, to be claimed later. */
-  List<Message> getMessages(String connectionId) {
-    final messages = _lostMessages[connectionId];
-
-    if (messages != null) {
-      _lostMessages.removeWhere((key, value) => key == connectionId);
-
-      return messages;
-    }
-
-    return [];
-  }
-
-  /// Stores messages without a set up connection, to be claimed later. */
-  void _storeMessage(String connectionId, Message message) {
-    if (!_lostMessages.containsKey(connectionId)) {
-      _lostMessages[connectionId] = [];
-    }
-
-    _lostMessages[connectionId]?.add(message);
-  }
 }

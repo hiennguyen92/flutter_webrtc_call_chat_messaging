@@ -8,14 +8,6 @@ enum ConnectionType {
   final String type;
 }
 
-enum SocketEventType {
-  Message("message"),
-  Disconnected("disconnected"),
-  Error("error");
-
-  const SocketEventType(this.type);
-  final String type;
-}
 
 enum MessageType {
   Heartbeat("HEARTBEAT"),
@@ -33,12 +25,6 @@ enum MessageType {
   final String type;
 }
 
-enum APIType {
-  Error("error");
-
-  const APIType(this.type);
-  final String type;
-}
 
 enum SerializationType {
   Binary("binary"),
@@ -48,4 +34,3 @@ enum SerializationType {
   final String type;
 }
 
-enum DataChannels { binary, data }
