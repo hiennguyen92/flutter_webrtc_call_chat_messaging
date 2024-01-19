@@ -13,7 +13,9 @@ enum SocketEvent {
 enum DataConnectionEvent {
   Connection("connection"),
   Open("open"),
+  Connecting("connecting"),
   Closed("closed"),
+  Closing("closing"),
   Data("data"),
   Binary("binary");
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_webrtc_call_chat_messaging/firebase/app_firebase.dart';
 import 'package:flutter_webrtc_call_chat_messaging/screens/home_screen.dart';
 import 'package:flutter_webrtc_call_chat_messaging/screens/splash_screen.dart';
 import 'package:flutter_webrtc_call_chat_messaging/view_models/home_view_model.dart';
@@ -18,9 +19,9 @@ class AppRoute {
   static AppRoute get instance => _instance;
 
   static Widget createProvider<P extends ChangeNotifier>(
-      P Function(BuildContext context) provider,
-      Widget child,
-      ) {
+    P Function(BuildContext context) provider,
+    Widget child,
+  ) {
     return ChangeNotifierProvider<P>(
       create: provider,
       builder: (_, __) {
@@ -45,7 +46,10 @@ class AppRoute {
             appTransitionDuration: duration,
             appSettings: settings,
             builder: (_) => ChangeNotifierProvider(
-                create: (context) => HomeViewModel(context, Provider.of<AppWebRTC>(context, listen: false)),
+                create: (context) => HomeViewModel(
+                    context,
+                    Provider.of<AppWebRTC>(context, listen: false),
+                    Provider.of<AppFirebase>(context, listen: false)),
                 builder: (_, __) => const HomeScreen()));
       default:
         return null;
@@ -60,8 +64,8 @@ class AppPageRoute extends MaterialPageRoute<Object> {
 
   AppPageRoute(
       {required WidgetBuilder builder,
-        this.appSettings,
-        this.appTransitionDuration})
+      this.appSettings,
+      this.appTransitionDuration})
       : super(builder: builder);
 
   @override

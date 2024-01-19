@@ -1,5 +1,7 @@
 class HomeViewState {
 
+  bool isLoading = false;
+
   String? status;
   List<String> peers = [];
 

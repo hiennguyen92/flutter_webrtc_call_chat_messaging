@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc_call_chat_messaging/base/base_view_model.dart';
+import 'package:flutter_webrtc_call_chat_messaging/firebase/app_firebase.dart';
 import 'package:flutter_webrtc_call_chat_messaging/view_states/home_view_state.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/app_events.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/app_webrtc.dart';
@@ -9,8 +10,9 @@ import 'package:flutter_webrtc_call_chat_messaging/webrtc/data_connection.dart';
 
 class HomeViewModel extends BaseViewModel<HomeViewState> {
   late final AppWebRTC _appWebRTC;
+  late final AppFirebase _appFirebase;
 
-  HomeViewModel(BuildContext context, this._appWebRTC)
+  HomeViewModel(BuildContext context, this._appWebRTC, this._appFirebase)
       : super(context, HomeViewState()) {
     _onEventListeners();
   }
@@ -82,5 +84,20 @@ class HomeViewModel extends BaseViewModel<HomeViewState> {
 
   bool isMe(String peer) {
     return _appWebRTC.getCurrentId() == peer;
+  }
+
+  @override
+  void dispose() {
+    _appWebRTC.dispose();
+    super.dispose();
+  }
+
+  Future<void> login(String displayName) async {
+    state.isLoading = true;
+    _appFirebase.signInAnonymously(displayName).then((value) {
+      state.isLoading = false;
+    }).catchError((error) {
+      state.isLoading = false;
+    });
   }
 }

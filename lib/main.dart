@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc_call_chat_messaging/app_route.dart';
+import 'package:flutter_webrtc_call_chat_messaging/firebase/app_firebase.dart';
 import 'package:flutter_webrtc_call_chat_messaging/navigation_service.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/app_webrtc.dart';
 import 'package:provider/provider.dart';
@@ -48,7 +49,8 @@ void main() async {
     providers: <SingleChildWidget>[
       Provider<AppRoute>(create: (_) => AppRoute()),
       Provider<NavigationService>(create: (_) => NavigationService()),
-      Provider<AppWebRTC>(create: (_) => AppWebRTC())
+      Provider<AppWebRTC>(create: (_) => AppWebRTC()),
+      Provider<AppFirebase>(create: (_) => AppFirebase()),
     ],
     child: const Application(),
   ));

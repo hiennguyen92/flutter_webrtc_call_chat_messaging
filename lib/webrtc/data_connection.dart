@@ -78,7 +78,6 @@ class DataConnection extends BaseConnection {
         case webrtc.RTCIceConnectionState.RTCIceConnectionStateCompleted:
           peerConnection?.onIceCandidate = (_) {};
           break;
-
         case webrtc.RTCIceConnectionState.RTCIceConnectionStateFailed:
           print(
             "iceConnectionState is failed, closing connections to $peer",
@@ -98,24 +97,19 @@ class DataConnection extends BaseConnection {
           dispose();
           break;
         case webrtc.RTCIceConnectionState.RTCIceConnectionStateNew:
-          print("RTCIceConnectionStateNew");
           // TODO: Handle this case.
           break;
         case webrtc.RTCIceConnectionState.RTCIceConnectionStateChecking:
-          print("RTCIceConnectionStateChecking");
           // TODO: Handle this case.
           break;
         case webrtc.RTCIceConnectionState.RTCIceConnectionStateConnected:
-          print("RTCIceConnectionStateConnected");
           // TODO: Handle this case.
           break;
         case webrtc.RTCIceConnectionState.RTCIceConnectionStateCount:
-          print("RTCIceConnectionStateCount");
           // TODO: Handle this case.
           break;
       }
     };
-    print("peerConnection $peerConnection");
     peerConnection?.onDataChannel = (channel) {
       print("onDataChannel");
       _initialize(channel);
@@ -124,7 +118,6 @@ class DataConnection extends BaseConnection {
 
   void _dataChannelListeners() {
     _dc?.onDataChannelState = (state) {
-      print("onDataChannelState: $state");
       switch (state) {
         case webrtc.RTCDataChannelState.RTCDataChannelOpen:
           open = true;
@@ -136,15 +129,14 @@ class DataConnection extends BaseConnection {
           dispose();
           break;
         case webrtc.RTCDataChannelState.RTCDataChannelConnecting:
-          // TODO: Handle this case.
+          super.emit<DataConnection>(DataConnectionEvent.Connecting.type, this);
           break;
         case webrtc.RTCDataChannelState.RTCDataChannelClosing:
-          // TODO: Handle this case.
+          super.emit<DataConnection>(DataConnectionEvent.Closing.type, this);
           break;
       }
     };
     _dc?.onMessage = (message) {
-      print("onMessage: ${message.isBinary}");
       final datatype = message.type;
       if (datatype == webrtc.MessageType.text) {
         dynamic deserializedData = jsonDecode(message.text);
@@ -216,31 +208,18 @@ class DataConnection extends BaseConnection {
   @override
   void dispose() {
     print("Cleaning up PeerConnection to $peer");
-
-    final peerConnectionNotClosed = peerConnection?.signalingState !=
-        webrtc.RTCSignalingState.RTCSignalingStateClosed;
-    bool dataChannelNotClosed = false;
-
     if (peerConnection == null) {
       return;
     }
-
-    if (peerConnectionNotClosed || dataChannelNotClosed) {
-      peerConnection?.close();
-    }
-
+    peerConnection?.close();
     peerConnection?.dispose();
-
     dataChannel?.onDataChannelState = null;
     dataChannel?.onMessage = null;
     _dc = null;
-
     if (!open) {
       return;
     }
-
     open = false;
-
     close();
   }
 

@@ -1,4 +1,8 @@
 # This is a generated file; do not edit or check into version control.
+cloud_firestore=/Users/hiennguyen92/.pub-cache/hosted/pub.dev/cloud_firestore-4.14.0/
+cloud_firestore_web=/Users/hiennguyen92/.pub-cache/hosted/pub.dev/cloud_firestore_web-3.9.0/
+firebase_auth=/Users/hiennguyen92/.pub-cache/hosted/pub.dev/firebase_auth-4.16.0/
+firebase_auth_web=/Users/hiennguyen92/.pub-cache/hosted/pub.dev/firebase_auth_web-5.8.13/
 firebase_core=/Users/hiennguyen92/.pub-cache/hosted/pub.dev/firebase_core-2.24.2/
 firebase_core_web=/Users/hiennguyen92/.pub-cache/hosted/pub.dev/firebase_core_web-2.10.0/
 firebase_messaging=/Users/hiennguyen92/.pub-cache/hosted/pub.dev/firebase_messaging-14.7.10/

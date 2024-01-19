@@ -12,12 +12,66 @@ class HomeScreen extends StatefulWidget {
   }
 }
 
-class _HomeScreenState extends BaseStateful<HomeScreen, HomeViewModel> {
+class _HomeScreenState extends BaseStateful<HomeScreen, HomeViewModel> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showDialogWithFields());
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _showDialogWithFields();
+    }
+  }
+
+
   @override
   AppBar buildAppBarWidget(BuildContext context) {
     return AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       title: const Text("Home"),
+    );
+  }
+
+  Future<void> _showDialogWithFields() async {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        var emailController = TextEditingController();
+        return AlertDialog(
+          title: const Text("Welcome"),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextField(
+                  controller: emailController,
+                  decoration: const InputDecoration(
+                    labelText: 'Enter Name',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("Login"),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -38,7 +92,7 @@ class _HomeScreenState extends BaseStateful<HomeScreen, HomeViewModel> {
                     var isMe = homeViewModel.isMe(item);
                     var color = Colors.amber;
                     var name = "Client: $item";
-                    if(isMe){
+                    if (isMe) {
                       color = Colors.red;
                       name = "Me: $item";
                     }
@@ -50,7 +104,8 @@ class _HomeScreenState extends BaseStateful<HomeScreen, HomeViewModel> {
                             viewModel.connect(item);
                           },
                           child: Center(
-                              child: Text(name, style: const TextStyle( fontSize: 12 )))),
+                              child: Text(name,
+                                  style: const TextStyle(fontSize: 12)))),
                     );
                   }),
             );
