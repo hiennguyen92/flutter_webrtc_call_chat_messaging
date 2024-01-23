@@ -124,6 +124,11 @@ class AppWebRTC extends StreamEventEmitter {
     return socket.getId();
   }
 
+  bool isConnected() {
+    return _socket.isConnected();
+  }
+
+
   void disconnect() {
     _socket.disconnect();
   }

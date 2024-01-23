@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc_call_chat_messaging/firebase/app_firebase.dart';
+import 'package:flutter_webrtc_call_chat_messaging/navigation_service.dart';
 import 'package:flutter_webrtc_call_chat_messaging/screens/home_screen.dart';
 import 'package:flutter_webrtc_call_chat_messaging/screens/splash_screen.dart';
 import 'package:flutter_webrtc_call_chat_messaging/view_models/home_view_model.dart';
@@ -48,6 +49,7 @@ class AppRoute {
             builder: (_) => ChangeNotifierProvider(
                 create: (context) => HomeViewModel(
                     context,
+                    Provider.of<NavigationService>(context, listen: false),
                     Provider.of<AppWebRTC>(context, listen: false),
                     Provider.of<AppFirebase>(context, listen: false)),
                 builder: (_, __) => const HomeScreen()));
