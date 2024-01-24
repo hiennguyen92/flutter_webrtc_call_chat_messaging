@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_webrtc_call_chat_messaging/app_route.dart';
 import 'package:flutter_webrtc_call_chat_messaging/base/base_view_model.dart';
 import 'package:flutter_webrtc_call_chat_messaging/firebase/app_firebase.dart';
 import 'package:flutter_webrtc_call_chat_messaging/navigation_service.dart';
@@ -22,41 +23,53 @@ class HomeViewModel extends BaseViewModel<HomeViewState> {
 
   void _onEventListeners() {
     _appWebRTC.on(SocketEvent.Connected.type).listen((event) async {
-      state.status = "Connected";
-      await getUsers();
-      notifyListeners();
+      if (mounted) {
+        state.status = "Connected";
+        await getUsers();
+        notifyListeners();
+      }
     });
     _appWebRTC.on(SocketEvent.Disconnected.type).listen((event) async {
-      state.status = "Disconnected";
-      await getUsers();
-      notifyListeners();
+      if (mounted) {
+        state.status = "Disconnected";
+        await getUsers();
+        notifyListeners();
+      }
     });
     _appWebRTC.on(SocketEvent.Error.type).listen((event) async {
-      state.status = "Error";
-      await getUsers();
-      notifyListeners();
+      if (mounted) {
+        state.status = "Error";
+        await getUsers();
+        notifyListeners();
+      }
     });
     _appWebRTC
         .on<DataConnection>(DataConnectionEvent.Connection.type)
         .listen((conn) {
-      print("nhan duoc connected");
-      conn.on<DataConnection>("open").listen((event) {
-        // print("ON OPEN");
-        // event.send({"data": 'hello'});
-      });
-      conn.on("data").listen((event) {
-        print("received data: $event");
-      });
-      conn.on<Uint8List>("binary").listen((event) {
-        print("received binary: $event");
-      });
+      if (mounted) {
+        print("nhan duoc connected");
+        conn.on<DataConnection>("open").listen((event) {
+          // print("ON OPEN");
+          // event.send({"data": 'hello'});
+          state.addDataConnection(event);
+        });
+        conn.on("data").listen((event) {
+          print("received data: $event");
+          //state.addReceivedMessage(event.);
+        });
+        conn.on<Uint8List>("binary").listen((event) {
+          print("received binary: $event");
+        });
+      }
     });
+
   }
 
   Future<void> initial() async {
-    if(isLogged()){
-      if(!_appWebRTC.isConnected()){
-        Map<String, dynamic>? userInfo = await _appFirebase.getCurrentUserInfo();
+    if (isLogged()) {
+      if (!_appWebRTC.isConnected()) {
+        Map<String, dynamic>? userInfo =
+            await _appFirebase.getCurrentUserInfo();
         start(userInfo?['uuid']);
       }
     }
@@ -80,19 +93,7 @@ class HomeViewModel extends BaseViewModel<HomeViewState> {
     _appWebRTC.start(userId);
   }
 
-  Future<void> connect(String peer) async {
-    var conn = _appWebRTC.connect(peer);
-    conn.on<DataConnection>("open").listen((event) {
-      print("ON OPEN");
-      event.send({"data": 'hello'});
-    });
-    conn.on("data").listen((event) {
-      print("received data: $event");
-    });
-    conn.on<Uint8List>("binary").listen((event) {
-      print("received binary: $event");
-    });
-  }
+
 
   Future<void> disconnect() async {
     _appWebRTC.disconnect();
@@ -102,11 +103,6 @@ class HomeViewModel extends BaseViewModel<HomeViewState> {
     return _appWebRTC.getCurrentId() == peer;
   }
 
-  @override
-  void dispose() {
-    _appWebRTC.dispose();
-    super.dispose();
-  }
 
   String getStatus() {
     return state.getStatus();
@@ -177,4 +173,10 @@ class HomeViewModel extends BaseViewModel<HomeViewState> {
     return state.users.where((user) => !isMe(user['uuid'])).toList();
   }
 
+
+
+
+  void goToChatScreen({ dynamic params }) {
+    _navigationService.pushNamed(AppRoute.chatScreen, args: params);
+  }
 }

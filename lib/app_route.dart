@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc_call_chat_messaging/firebase/app_firebase.dart';
 import 'package:flutter_webrtc_call_chat_messaging/navigation_service.dart';
+import 'package:flutter_webrtc_call_chat_messaging/screens/chat_screen.dart';
 import 'package:flutter_webrtc_call_chat_messaging/screens/home_screen.dart';
 import 'package:flutter_webrtc_call_chat_messaging/screens/splash_screen.dart';
+import 'package:flutter_webrtc_call_chat_messaging/view_models/chat_view_model.dart';
 import 'package:flutter_webrtc_call_chat_messaging/view_models/home_view_model.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/app_webrtc.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +12,7 @@ import 'package:provider/provider.dart';
 class AppRoute {
   static const splashScreen = '/splashScreen';
   static const homeScreen = '/homeScreen';
+  static const chatScreen = '/chatScreen';
 
   static final AppRoute _instance = AppRoute._private();
   factory AppRoute() {
@@ -39,7 +42,7 @@ class AppRoute {
         Duration? duration;
         if (settings.arguments != null) {
           final args = settings.arguments as Map<String, dynamic>;
-          if ((args['isWithoutAnimation'] as bool)) {
+          if (args['isWithoutAnimation'] != null && (args['isWithoutAnimation'] as bool)) {
             duration = Duration.zero;
           }
         }
@@ -53,6 +56,24 @@ class AppRoute {
                     Provider.of<AppWebRTC>(context, listen: false),
                     Provider.of<AppFirebase>(context, listen: false)),
                 builder: (_, __) => const HomeScreen()));
+      case chatScreen:
+        Duration? duration;
+        if (settings.arguments != null) {
+          final args = settings.arguments as Map<String, dynamic>;
+          if (args['isWithoutAnimation'] != null && (args['isWithoutAnimation'] as bool)) {
+            duration = Duration.zero;
+          }
+        }
+        return AppPageRoute(
+            appTransitionDuration: duration,
+            appSettings: settings,
+            builder: (_) => ChangeNotifierProvider(
+                create: (context) => ChatViewModel(
+                    context,
+                    Provider.of<NavigationService>(context, listen: false),
+                    Provider.of<AppWebRTC>(context, listen: false),
+                    Provider.of<AppFirebase>(context, listen: false)),
+                builder: (_, __) => const ChatScreen()));
       default:
         return null;
     }

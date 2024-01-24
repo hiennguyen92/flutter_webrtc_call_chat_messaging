@@ -72,7 +72,7 @@ class AppSocket extends StreamEventEmitter {
       return;
     }
     final message = jsonEncode({"type": MessageType.Heartbeat.type});
-    //print("Send heartbeat.");
+    print("Send heartbeat.");
     _socket?.sink.add(message);
 
     _scheduleHeartbeat();

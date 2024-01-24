@@ -51,7 +51,7 @@ class AppWebRTC extends StreamEventEmitter {
     final type = message.type;
     final payload = message.payload;
     final peerId = message.src;
-
+    print("payload $payload");
     switch (type) {
       case MessageType.Open:
         emit<String?>(SocketEvent.Connected.type, "open");
@@ -127,7 +127,6 @@ class AppWebRTC extends StreamEventEmitter {
   bool isConnected() {
     return _socket.isConnected();
   }
-
 
   void disconnect() {
     _socket.disconnect();
@@ -224,5 +223,4 @@ class AppWebRTC extends StreamEventEmitter {
       connection?.dispose();
     }
   }
-
 }

@@ -213,7 +213,7 @@ class _HomeScreenState extends BaseStateful<HomeScreen, HomeViewModel>
                         var colorStatus =
                             item['isConnected'] ? Colors.green : Colors.grey;
                         return SizedBox(
-                          height: 35,
+                          height: 40,
                           child: Row(
                             children: [
                               Container(
@@ -231,6 +231,39 @@ class _HomeScreenState extends BaseStateful<HomeScreen, HomeViewModel>
                               const SizedBox(width: 5),
                               Text(item['displayName'],
                                   style: const TextStyle(fontSize: 12)),
+                              Expanded(
+                                  child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  SizedBox(
+                                    height: 40,
+                                    width: 40,
+                                    child: IconButton(
+                                      icon: const Icon(Icons.message,
+                                          color: Colors.green),
+                                      onPressed: () {
+                                        viewModel.goToChatScreen(params: item);
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
+                                  SizedBox(
+                                    height: 40,
+                                    width: 40,
+                                    child: IconButton(
+                                      icon: const Icon(Icons.video_call,
+                                          color: Colors.green),
+                                      onPressed: () {},
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: 10,
+                                  )
+                                ],
+                              ))
                             ],
                           ),
                         );
