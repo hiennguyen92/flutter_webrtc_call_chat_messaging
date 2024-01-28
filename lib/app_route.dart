@@ -64,6 +64,7 @@ class AppRoute {
             duration = Duration.zero;
           }
         }
+        var arguments = settings.arguments as Map<String, dynamic>;
         return AppPageRoute(
             appTransitionDuration: duration,
             appSettings: settings,
@@ -73,7 +74,7 @@ class AppRoute {
                     Provider.of<NavigationService>(context, listen: false),
                     Provider.of<AppWebRTC>(context, listen: false),
                     Provider.of<AppFirebase>(context, listen: false)),
-                builder: (_, __) => const ChatScreen()));
+                builder: (_, __) => ChatScreen(arguments: arguments)));
       default:
         return null;
     }

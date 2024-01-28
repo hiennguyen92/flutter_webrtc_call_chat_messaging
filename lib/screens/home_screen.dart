@@ -40,6 +40,7 @@ class _HomeScreenState extends BaseStateful<HomeScreen, HomeViewModel>
   @override
   AppBar buildAppBarWidget(BuildContext context) {
     return AppBar(
+        centerTitle: true,
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -164,6 +165,36 @@ class _HomeScreenState extends BaseStateful<HomeScreen, HomeViewModel>
     return _dialogLogin;
   }
 
+  Widget _buildBadge(int value) {
+    if(value > 0){
+      return Positioned(
+        right: 0,
+        child: Container(
+          padding: const EdgeInsets.all(1),
+          decoration: BoxDecoration(
+            color: Colors.red,
+            borderRadius:
+            BorderRadius.circular(6),
+          ),
+          constraints: const BoxConstraints(
+            minWidth: 15,
+            minHeight: 15,
+          ),
+          child: Text(
+            value.toString(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 8,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+    return const SizedBox.shrink();
+  }
+
+
   @override
   Widget buildBodyWidget(BuildContext context) {
     return Center(
@@ -212,6 +243,7 @@ class _HomeScreenState extends BaseStateful<HomeScreen, HomeViewModel>
                         var item = usersClient[index];
                         var colorStatus =
                             item['isConnected'] ? Colors.green : Colors.grey;
+                        var messages = homeViewModel.getMessagesByPeer(item['uuid']);
                         return SizedBox(
                           height: 40,
                           child: Row(
@@ -236,16 +268,22 @@ class _HomeScreenState extends BaseStateful<HomeScreen, HomeViewModel>
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  SizedBox(
-                                    height: 40,
-                                    width: 40,
-                                    child: IconButton(
-                                      icon: const Icon(Icons.message,
-                                          color: Colors.green),
-                                      onPressed: () {
-                                        viewModel.goToChatScreen(params: item);
-                                      },
-                                    ),
+                                  Stack(
+                                    children: [
+                                      SizedBox(
+                                        height: 40,
+                                        width: 40,
+                                        child: IconButton(
+                                          icon: const Icon(Icons.message,
+                                              color: Colors.green),
+                                          onPressed: () {
+                                            viewModel.goToChatScreen(
+                                                params: item);
+                                          },
+                                        ),
+                                      ),
+                                      _buildBadge(messages.length)
+                                    ],
                                   ),
                                   const SizedBox(
                                     width: 10,

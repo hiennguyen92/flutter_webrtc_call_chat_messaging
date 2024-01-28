@@ -5,7 +5,9 @@ import 'package:flutter_webrtc_call_chat_messaging/view_models/chat_view_model.d
 import 'package:provider/provider.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final Map<String, dynamic>? arguments;
+
+  const ChatScreen({super.key, required this.arguments});
 
   @override
   State<StatefulWidget> createState() {
@@ -15,8 +17,6 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends BaseStateful<ChatScreen, ChatViewModel>
     with WidgetsBindingObserver {
-  late Map<String, dynamic> arguments;
-
   final TextEditingController _textController = TextEditingController();
 
   void _handleSubmitted(String text) {
@@ -25,23 +25,24 @@ class _ChatScreenState extends BaseStateful<ChatScreen, ChatViewModel>
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    RouteSettings settings = ModalRoute.of(context)!.settings;
-    arguments = settings.arguments as Map<String, dynamic>;
-    viewModel.initial(arguments);
+  void initState() {
+    super.initState();
+    if (widget.arguments != null) {
+      viewModel.initial(widget.arguments);
+    }
   }
 
   @override
   AppBar buildAppBarWidget(BuildContext context) {
     return AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      centerTitle: true,
       title: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const Text("Chat", style: TextStyle(fontSize: 16)),
-          Text(arguments['displayName'],
+          Text(widget.arguments?['displayName'],
               style: const TextStyle(fontSize: 12, color: Colors.grey))
         ],
       ),

@@ -73,7 +73,7 @@ class AppWebRTC extends StreamEventEmitter {
         break;
       case MessageType.Offer:
         print("OFFER $peerId $payload");
-        final connection = getConnection(peerId!, message);
+        final connection = _getConnection(peerId!, message);
         if (connection != null) {
           connection.close();
           removeConnection(connection);
@@ -92,7 +92,7 @@ class AppWebRTC extends StreamEventEmitter {
           return;
         }
         print("ANSWER $peerId $payload");
-        BaseConnection? connection = getConnection(peerId!, message);
+        BaseConnection? connection = _getConnection(peerId!, message);
         if (connection != null && connection.peerConnection != null) {
           connection.handleAnswer(message);
         }
@@ -102,7 +102,7 @@ class AppWebRTC extends StreamEventEmitter {
           print("You received a message from $peerId of type $type");
           return;
         }
-        BaseConnection? connection = getConnection(peerId!, message);
+        BaseConnection? connection = _getConnection(peerId!, message);
         if (connection != null && connection.peerConnection != null) {
           connection.handleCandidate(message);
         }
@@ -196,7 +196,7 @@ class AppWebRTC extends StreamEventEmitter {
   }
 
   /// Retrieve a data/media connection for this peer. */
-  dynamic getConnection(String peerId, Message message) {
+  dynamic _getConnection(String peerId, Message message) {
     final payload = message.payload;
     if (!_connections.containsKey(peerId)) {
       print("Could not get connection with id: $peerId");

@@ -48,21 +48,36 @@ class HomeViewModel extends BaseViewModel<HomeViewState> {
         .listen((conn) {
       if (mounted) {
         print("nhan duoc connected");
-        conn.on<DataConnection>("open").listen((event) {
-          // print("ON OPEN");
-          // event.send({"data": 'hello'});
-          state.addDataConnection(event);
+        conn.on<DataConnection>(DataConnectionEvent.Open.type).listen((event) {
+          print("DataConnection: OPEN");
         });
-        conn.on("data").listen((event) {
+        conn
+            .on<DataConnection>(DataConnectionEvent.Connecting.type)
+            .listen((event) {
+          //TODO:
+          print("DataConnection: Connecting");
+        });
+        conn
+            .on<DataConnection>(DataConnectionEvent.Closing.type)
+            .listen((event) {
+          //TODO:
+          print("DataConnection: Closing");
+        });
+        conn
+            .on<DataConnection>(DataConnectionEvent.Closed.type)
+            .listen((event) {
+          print("DataConnection: Closed");
+        });
+        conn.on<dynamic>(DataConnectionEvent.Data.type).listen((event) {
           print("received data: $event");
-          //state.addReceivedMessage(event.);
+          state.addMessage(event['peer'], event);
+          notifyListeners();
         });
-        conn.on<Uint8List>("binary").listen((event) {
+        conn.on<Uint8List>(DataConnectionEvent.Binary.type).listen((event) {
           print("received binary: $event");
         });
       }
     });
-
   }
 
   Future<void> initial() async {
@@ -93,8 +108,6 @@ class HomeViewModel extends BaseViewModel<HomeViewState> {
     _appWebRTC.start(userId);
   }
 
-
-
   Future<void> disconnect() async {
     _appWebRTC.disconnect();
   }
@@ -102,7 +115,6 @@ class HomeViewModel extends BaseViewModel<HomeViewState> {
   bool isMe(String peer) {
     return _appWebRTC.getCurrentId() == peer;
   }
-
 
   String getStatus() {
     return state.getStatus();
@@ -170,13 +182,25 @@ class HomeViewModel extends BaseViewModel<HomeViewState> {
   }
 
   List<dynamic> getUsersClient() {
-    return state.users.where((user) => !isMe(user['uuid'])).toList();
+    var usersClient = state.users.where((user) => !isMe(user['uuid'])).toList();
+
+    return usersClient;
   }
 
+  List<dynamic> getMessagesByPeer(String peer) {
+    return  state.getMessagesByPeer(peer);
+  }
 
+  void readByPeer(String peer) {
+    state.readByPeer(peer);
+    notifyListeners();
+  }
 
-
-  void goToChatScreen({ dynamic params }) {
+  void goToChatScreen({dynamic params}) {
+    var peer = params['uuid'];
+    var messages = getMessagesByPeer(peer);
+    params['messages'] = List.from(messages);
+    readByPeer(peer);
     _navigationService.pushNamed(AppRoute.chatScreen, args: params);
   }
 }

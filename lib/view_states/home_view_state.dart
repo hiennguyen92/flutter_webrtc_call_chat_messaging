@@ -9,6 +9,7 @@ class HomeViewState {
 
   Map<String, dynamic> receivedData = Map.from({});
 
+
   HomeViewState();
 
   String getStatus() {
@@ -19,18 +20,31 @@ class HomeViewState {
     return displayName != null && displayName!.isNotEmpty;
   }
 
-  void addReceivedMessage(String peer, dynamic data) {
+
+
+
+  void addMessage(String peer, dynamic data) {
     var byPeer = receivedData[peer];
-    byPeer ??= Map.from({});
+    if(byPeer == null) {
+      byPeer = Map.from({});
+      receivedData[peer] = byPeer;
+    }
     byPeer['messages'] ??= List<dynamic>.from([]);
     (byPeer['messages'] as List<dynamic>).add(data);
   }
 
-  void addDataConnection(DataConnection dataConnection) {
-    var byPeer = receivedData[dataConnection.peer];
+  List<dynamic> getMessagesByPeer(String peer) {
+    var byPeer = receivedData[peer];
     byPeer ??= Map.from({});
-    byPeer['dataConnection'] = dataConnection;
+    return  byPeer['messages'] ??= List<dynamic>.from([]);
   }
+
+  void readByPeer(String peer) {
+    var byPeer = receivedData[peer];
+    byPeer ??= Map.from({});
+    byPeer['messages'] = List<dynamic>.from([]);
+  }
+
 
 
 }

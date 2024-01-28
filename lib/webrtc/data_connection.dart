@@ -140,10 +140,16 @@ class DataConnection extends BaseConnection {
       final datatype = message.type;
       if (datatype == webrtc.MessageType.text) {
         dynamic deserializedData = jsonDecode(message.text);
-        super.emit(DataConnectionEvent.Data.type, deserializedData);
+        dynamic data = Map.from({});
+        data['data'] = deserializedData;
+        data['peer'] = peer;
+        super.emit<dynamic>(DataConnectionEvent.Data.type, data);
       }
       if (datatype == webrtc.MessageType.binary) {
-        super.emit<Uint8List>(DataConnectionEvent.Binary.type, message.binary);
+        dynamic data = Map.from({});
+        data['data'] = message.binary;
+        data['peer'] = peer;
+        super.emit<dynamic>(DataConnectionEvent.Binary.type, data);
       }
     };
   }
