@@ -243,7 +243,7 @@ class _HomeScreenState extends BaseStateful<HomeScreen, HomeViewModel>
                         var item = usersClient[index];
                         var colorStatus =
                             item['isConnected'] ? Colors.green : Colors.grey;
-                        var messages = homeViewModel.getMessagesByPeer(item['uuid']);
+                        var unReadCount = homeViewModel.getCountMessagesByPeer(item['uuid']);
                         return SizedBox(
                           height: 40,
                           child: Row(
@@ -282,7 +282,7 @@ class _HomeScreenState extends BaseStateful<HomeScreen, HomeViewModel>
                                           },
                                         ),
                                       ),
-                                      _buildBadge(messages.length)
+                                      _buildBadge(unReadCount)
                                     ],
                                   ),
                                   const SizedBox(

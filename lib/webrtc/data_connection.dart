@@ -64,7 +64,7 @@ class DataConnection extends BaseConnection {
       "type": type.type,
       "connectionId": connectionId
     };
-    provider?.socket.send(
+    provider.socket.send(
         {"type": MessageType.Candidate.type, "payload": payload, "dst": peer});
   }
 
@@ -140,16 +140,12 @@ class DataConnection extends BaseConnection {
       final datatype = message.type;
       if (datatype == webrtc.MessageType.text) {
         dynamic deserializedData = jsonDecode(message.text);
-        dynamic data = Map.from({});
-        data['data'] = deserializedData;
-        data['peer'] = peer;
-        super.emit<dynamic>(DataConnectionEvent.Data.type, data);
+        super.emit<dynamic>(
+            DataConnectionEvent.Data.type, _buildData(deserializedData, peer));
       }
       if (datatype == webrtc.MessageType.binary) {
-        dynamic data = Map.from({});
-        data['data'] = message.binary;
-        data['peer'] = peer;
-        super.emit<dynamic>(DataConnectionEvent.Binary.type, data);
+        super.emit<dynamic>(
+            DataConnectionEvent.Binary.type, _buildData(message.binary, peer));
       }
     };
   }
@@ -170,7 +166,7 @@ class DataConnection extends BaseConnection {
         "metadata": metadata,
         "browser": "ds",
       };
-      provider?.socket.send({
+      provider.socket.send({
         "type": MessageType.Offer.type,
         "payload": payload,
         "dst": peer,
@@ -197,7 +193,7 @@ class DataConnection extends BaseConnection {
         "connectionId": connectionId,
         "browser": "s"
       };
-      provider?.socket.send({
+      provider.socket.send({
         "type": MessageType.Answer.type,
         "payload": payload,
         "dst": peer,
@@ -235,11 +231,12 @@ class DataConnection extends BaseConnection {
     _initialize();
     _setUpListeners();
     _makeOffer();
+    provider.emit<DataConnection>(DataConnectionEvent.Connection.type, this);
   }
 
   @override
   Future<void> handleOffer(Message message) async {
-    provider?.emit<DataConnection>(DataConnectionEvent.Connection.type, this);
+    provider.emit<DataConnection>(DataConnectionEvent.Connection.type, this);
     peerConnection = await webrtc.createPeerConnection(_DEFAULT_CONFIG ?? {});
     _setUpListeners();
     _makeAnswer();
@@ -271,15 +268,23 @@ class DataConnection extends BaseConnection {
   @override
   ConnectionType get type => ConnectionType.Data;
 
-  Future<void> send(dynamic data) async {
+  Future<dynamic> send(dynamic text) async {
     if (!open) {
       print(
           "Connection is not open. You should listen for the `open` event before sending messages.");
       return;
     }
     if (serialization == SerializationType.JSON) {
-      await dataChannel?.send(webrtc.RTCDataChannelMessage(jsonEncode(data)));
+      await dataChannel?.send(webrtc.RTCDataChannelMessage(jsonEncode(text)));
     }
+    return _buildData(text, provider.getCurrentId());
+  }
+
+  dynamic _buildData(dynamic data, String? cPeer) {
+    dynamic builder = Map.from({});
+    builder['data'] = data;
+    builder['peer'] = cPeer;
+    return builder;
   }
 
   Future<void> sendBinary(Uint8List binary) async {}

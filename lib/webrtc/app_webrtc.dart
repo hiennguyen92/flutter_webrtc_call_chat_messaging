@@ -156,6 +156,19 @@ class AppWebRTC extends StreamEventEmitter {
         'You cannot connect to a new Peer because you called .disconnect() on this Peer and ended your connection with the server. You can create a new Peer to reconnect, or call reconnect on this peer if you believe its ID to still be available.',
       );
     }
+
+    if (_connections.containsKey(peer)) {
+      final connections = _connections[peer];
+      if (connections != null) {
+        for (final connection in connections) {
+          if (connection is DataConnection) {
+            return connection;
+          }
+        }
+      }
+    }
+
+
     final dataConnection = DataConnection(peer, this, payload);
     dataConnection.makeOffer();
     _addConnection(peer, dataConnection: dataConnection);
@@ -181,6 +194,7 @@ class AppWebRTC extends StreamEventEmitter {
 
     _connections[peerId]?.add(connection);
   }
+
 
   /// connection: DataConnection / MediaConnection
   void removeConnection(dynamic connection) {

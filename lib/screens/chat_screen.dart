@@ -68,7 +68,7 @@ class _ChatScreenState extends BaseStateful<ChatScreen, ChatViewModel>
               itemCount: messages.length,
               itemBuilder: (BuildContext context, int index) {
                 return ListTile(
-                  title: Text(messages[index]),
+                  title: Text(messages[index].toString()),
                 );
               },
             );

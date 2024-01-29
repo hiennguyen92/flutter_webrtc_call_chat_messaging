@@ -73,7 +73,7 @@ class HomeViewModel extends BaseViewModel<HomeViewState> {
           state.addMessage(event['peer'], event);
           notifyListeners();
         });
-        conn.on<Uint8List>(DataConnectionEvent.Binary.type).listen((event) {
+        conn.on<dynamic>(DataConnectionEvent.Binary.type).listen((event) {
           print("received binary: $event");
         });
       }
@@ -189,6 +189,10 @@ class HomeViewModel extends BaseViewModel<HomeViewState> {
 
   List<dynamic> getMessagesByPeer(String peer) {
     return  state.getMessagesByPeer(peer);
+  }
+
+  int getCountMessagesByPeer(String peer) {
+    return  getMessagesByPeer(peer).length;
   }
 
   void readByPeer(String peer) {

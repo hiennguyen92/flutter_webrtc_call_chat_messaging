@@ -2,28 +2,21 @@ import 'package:flutter_webrtc_call_chat_messaging/webrtc/data_connection.dart';
 
 class ChatViewState {
 
-  DataConnection? _dataConnection;
   bool isOpened = false;
 
-  final List<String> _messages = [];
+  late List<dynamic> _messages = [];
 
   ChatViewState();
 
-  void send(String text) {
-    _messages.insert(0, text);
+  Future<void> initial(List<dynamic> messages) async {
+    _messages = messages;
   }
 
-  List<String> get messages => _messages;
 
+  List<dynamic> get messages => _messages;
 
-  void setDataConnection(DataConnection? dataConnection) {
-    _dataConnection = dataConnection;
+  void addMessage(dynamic data) {
+    _messages.insert(0, data);
   }
-
-  DataConnection? get dataConnection => _dataConnection;
-
-
-
-
 
 }

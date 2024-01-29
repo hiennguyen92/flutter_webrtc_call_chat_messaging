@@ -14,7 +14,7 @@ abstract class  BaseConnection extends StreamEventEmitter {
   late String connectionId;
   RTCPeerConnection? peerConnection;
   dynamic metadata;
-  late AppWebRTC? provider;
+  late AppWebRTC provider;
   late String peer;
   late ConnectionType type;
 
