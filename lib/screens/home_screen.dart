@@ -27,6 +27,7 @@ class _HomeScreenState extends BaseStateful<HomeScreen, HomeViewModel>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    viewModel.setCurrentPeer(null);
     super.dispose();
   }
 
@@ -36,6 +37,8 @@ class _HomeScreenState extends BaseStateful<HomeScreen, HomeViewModel>
       _showDialogLogin();
     }
   }
+
+
 
   @override
   AppBar buildAppBarWidget(BuildContext context) {

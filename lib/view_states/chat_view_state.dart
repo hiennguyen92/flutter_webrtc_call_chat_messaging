@@ -9,7 +9,7 @@ class ChatViewState {
   ChatViewState();
 
   Future<void> initial(List<dynamic> messages) async {
-    _messages = messages;
+    _messages = messages.reversed.toList();
   }
 
 

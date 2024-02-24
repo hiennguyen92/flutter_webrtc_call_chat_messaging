@@ -70,8 +70,11 @@ class HomeViewModel extends BaseViewModel<HomeViewState> {
         });
         conn.on<dynamic>(DataConnectionEvent.Data.type).listen((event) {
           print("received data: $event");
-          state.addMessage(event['peer'], event);
-          notifyListeners();
+          var peer = event['peer'];
+          if (peer != state.peerCurrent) {
+            state.addMessage(event['peer'], event);
+            notifyListeners();
+          }
         });
         conn.on<dynamic>(DataConnectionEvent.Binary.type).listen((event) {
           print("received binary: $event");
@@ -188,11 +191,11 @@ class HomeViewModel extends BaseViewModel<HomeViewState> {
   }
 
   List<dynamic> getMessagesByPeer(String peer) {
-    return  state.getMessagesByPeer(peer);
+    return state.getMessagesByPeer(peer);
   }
 
   int getCountMessagesByPeer(String peer) {
-    return  getMessagesByPeer(peer).length;
+    return getMessagesByPeer(peer).length;
   }
 
   void readByPeer(String peer) {
@@ -200,11 +203,21 @@ class HomeViewModel extends BaseViewModel<HomeViewState> {
     notifyListeners();
   }
 
+  void setCurrentPeer(String? peer) {
+    state.peerCurrent = peer;
+    notifyListeners();
+  }
+
   void goToChatScreen({dynamic params}) {
     var peer = params['uuid'];
+    setCurrentPeer(peer);
     var messages = getMessagesByPeer(peer);
     params['messages'] = List.from(messages);
     readByPeer(peer);
-    _navigationService.pushNamed(AppRoute.chatScreen, args: params);
+    _navigationService
+        .pushNamed(AppRoute.chatScreen, args: params)
+        .then((value) {
+      setCurrentPeer(null);
+    });
   }
 }

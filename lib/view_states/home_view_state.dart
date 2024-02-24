@@ -9,6 +9,8 @@ class HomeViewState {
 
   Map<String, dynamic> receivedData = Map.from({});
 
+  String? peerCurrent;
+
 
   HomeViewState();
 
