@@ -22,3 +22,15 @@ enum DataConnectionEvent {
   const DataConnectionEvent(this.type);
   final String type;
 }
+
+
+enum MediaConnectionEvent {
+  Connection("connection"),
+  Open("open"),
+  Connecting("connecting"),
+  Closed("closed"),
+  Closing("closing");
+
+  const MediaConnectionEvent(this.type);
+  final String type;
+}

@@ -220,4 +220,14 @@ class HomeViewModel extends BaseViewModel<HomeViewState> {
       setCurrentPeer(null);
     });
   }
+
+  void gotoVideoCall({dynamic params}) {
+    var peer = params['uuid'];
+    print('peer call ${peer}');
+    _navigationService
+        .pushNamed(AppRoute.callScreen, args: params)
+        .then((value) {
+      //setCurrentPeer(null);
+    });
+  }
 }

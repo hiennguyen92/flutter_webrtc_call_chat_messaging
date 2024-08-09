@@ -297,7 +297,9 @@ class _HomeScreenState extends BaseStateful<HomeScreen, HomeViewModel>
                                     child: IconButton(
                                       icon: const Icon(Icons.video_call,
                                           color: Colors.green),
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        viewModel.gotoVideoCall(params: item);
+                                      },
                                     ),
                                   ),
                                   const SizedBox(

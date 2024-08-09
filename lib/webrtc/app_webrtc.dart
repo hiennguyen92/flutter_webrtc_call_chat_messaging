@@ -5,6 +5,7 @@ import 'package:flutter_webrtc_call_chat_messaging/webrtc/app_socket.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/base_connection.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/data_connection.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/events.dart';
+import 'package:flutter_webrtc_call_chat_messaging/webrtc/media_connection.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/message.dart';
 
 class AppWebRTC extends StreamEventEmitter {
@@ -150,7 +151,7 @@ class AppWebRTC extends StreamEventEmitter {
     }
   }
 
-  DataConnection connect(String peer, {dynamic payload}) {
+  DataConnection connectData(String peer, {dynamic payload}) {
     if (!_socket.isConnected()) {
       print(
         'You cannot connect to a new Peer because you called .disconnect() on this Peer and ended your connection with the server. You can create a new Peer to reconnect, or call reconnect on this peer if you believe its ID to still be available.',
@@ -175,13 +176,41 @@ class AppWebRTC extends StreamEventEmitter {
     return dataConnection;
   }
 
+  MediaConnection connectMedia(String peer, {dynamic payload}) {
+    if (!_socket.isConnected()) {
+      print(
+        'You cannot connect to a new Peer because you called .disconnect() on this Peer and ended your connection with the server. You can create a new Peer to reconnect, or call reconnect on this peer if you believe its ID to still be available.',
+      );
+    }
+
+    if (_connections.containsKey(peer)) {
+      final connections = _connections[peer];
+      if (connections != null) {
+        for (final connection in connections) {
+          if (connection is MediaConnection) {
+            return connection;
+          }
+        }
+      }
+    }
+
+
+    final mediaConnection = MediaConnection(peer, this, payload);
+    mediaConnection.makeOffer();
+    _addConnection(peer, mediaConnection: mediaConnection);
+    return mediaConnection;
+  }
+
   /// Add a data/media connection to this peer. */
   /// connection: DataConnection / MediaConnection
-  void _addConnection(String peerId, {DataConnection? dataConnection}) {
+  void _addConnection(String peerId, {DataConnection? dataConnection, MediaConnection? mediaConnection}) {
     late BaseConnection connection;
 
     if (dataConnection != null) {
       connection = dataConnection;
+    }
+    if(mediaConnection != null) {
+      connection = mediaConnection;
     }
 
     print(

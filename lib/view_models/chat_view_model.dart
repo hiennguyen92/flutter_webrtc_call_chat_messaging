@@ -41,7 +41,7 @@ class ChatViewModel extends BaseViewModel<ChatViewState> {
   }
 
   Future<void> setupDataConnection(String peer) async {
-    _dataConnection = _appWebRTC.connect(peer);
+    _dataConnection = _appWebRTC.connectData(peer);
     _onEventListeners();
   }
 
