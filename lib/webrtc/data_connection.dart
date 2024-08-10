@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as webrtc;
@@ -8,34 +7,6 @@ import 'package:flutter_webrtc_call_chat_messaging/webrtc/base_connection.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/events.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/message.dart';
 
-const _DEFAULT_CONFIG = {
-  "iceServers": [
-    {"urls": "stun:stun.l.google.com:19302"},
-    {
-      "urls": [
-        "turn:eu-0.turn.peerjs.com:3478",
-        "turn:us-0.turn.peerjs.com:3478",
-      ],
-      "username": "peerjs",
-      "credential": "peerjsp",
-    },
-  ],
-  "sdpSemantics": "unified-plan",
-};
-
-String generateConnectId() {
-  String generateRandomString(int len) {
-    var r = Random();
-    const chars =
-        'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
-    return List.generate(len, (index) => chars[r.nextInt(chars.length)])
-        .join()
-        .toLowerCase();
-  }
-
-  return 'dc_${generateRandomString(10)}';
-}
-
 class DataConnection extends BaseConnection {
   late String label;
   late bool reliable;
@@ -43,7 +14,7 @@ class DataConnection extends BaseConnection {
   webrtc.RTCDataChannel? _dc;
 
   DataConnection(super.peer, super.provider, super.payload) {
-    connectionId = payload?['connectionId'] ?? generateConnectId();
+    connectionId = payload?['connectionId'] ?? generateConnectId('dc');
     label = connectionId;
     serialization = SerializationType.JSON;
     reliable = false;
@@ -227,7 +198,7 @@ class DataConnection extends BaseConnection {
 
   @override
   Future<void> makeOffer() async {
-    peerConnection = await webrtc.createPeerConnection(_DEFAULT_CONFIG ?? {});
+    peerConnection = await webrtc.createPeerConnection(DEFAULT_CONFIG ?? {});
     _initialize();
     _setUpListeners();
     _makeOffer();
@@ -237,7 +208,7 @@ class DataConnection extends BaseConnection {
   @override
   Future<void> handleOffer(Message message) async {
     provider.emit<DataConnection>(DataConnectionEvent.Connection.type, this);
-    peerConnection = await webrtc.createPeerConnection(_DEFAULT_CONFIG ?? {});
+    peerConnection = await webrtc.createPeerConnection(DEFAULT_CONFIG ?? {});
     _setUpListeners();
     _makeAnswer();
   }

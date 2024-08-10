@@ -8,7 +8,6 @@ import 'package:flutter_webrtc_call_chat_messaging/navigation_service.dart';
 import 'package:flutter_webrtc_call_chat_messaging/view_states/call_view_state.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/app_events.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/app_webrtc.dart';
-import 'package:flutter_webrtc_call_chat_messaging/webrtc/data_connection.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/media_connection.dart';
 
 class CallViewModel extends BaseViewModel<CallViewState> {
@@ -32,19 +31,19 @@ class CallViewModel extends BaseViewModel<CallViewState> {
     }
   }
 
-
   Future<void> setupMediaConnection(String peer) async {
     _mediaConnection = _appWebRTC.connectMedia(peer);
     _onEventListeners();
   }
 
   void _onEventListeners() {
-    print("_onEventListeners ${_mediaConnection}");
     _mediaConnection
         ?.on<MediaConnection>(MediaConnectionEvent.Connection.type)
         .listen((event) {
       if (mounted) {
-        print("ON Connection MEDIA");
+        print("ON CONNECTION MEDIA");
+        state.addLocalStream(event.localStream);
+        notifyListeners();
       }
     });
     _mediaConnection
@@ -55,11 +54,20 @@ class CallViewModel extends BaseViewModel<CallViewState> {
       }
     });
     _mediaConnection?.on<MediaStream>("stream").listen((event) {
-      print("STREAM");
+      if (mounted) {
+        print("STREAM");
+      }
     });
   }
 
+
+  MediaStream? getLocalStream() {
+    return state.localStream;
+  }
+
   Future<void> getBack() async {
+    _appWebRTC.removeConnection(_mediaConnection);
+    _mediaConnection?.dispose();
     _navigationService.goBack();
   }
 }

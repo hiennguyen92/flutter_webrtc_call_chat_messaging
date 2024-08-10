@@ -1,48 +1,18 @@
-import 'dart:convert';
-import 'dart:math';
-import 'dart:typed_data';
-
 import 'package:flutter_webrtc/flutter_webrtc.dart' as webrtc;
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/app_events.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/base_connection.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/events.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/message.dart';
 
-const _DEFAULT_CONFIG = {
-  "iceServers": [
-    {"urls": "stun:stun.l.google.com:19302"},
-    {
-      "urls": [
-        "turn:eu-0.turn.peerjs.com:3478",
-        "turn:us-0.turn.peerjs.com:3478",
-      ],
-      "username": "peerjs",
-      "credential": "peerjsp",
-    },
-  ],
-  "sdpSemantics": "unified-plan",
-};
 
-String generateConnectId() {
-  String generateRandomString(int len) {
-    var r = Random();
-    const chars =
-        'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
-    return List.generate(len, (index) => chars[r.nextInt(chars.length)])
-        .join()
-        .toLowerCase();
-  }
-
-  return 'mc_${generateRandomString(10)}';
-}
 
 class MediaConnection extends BaseConnection {
   late String label;
-  late webrtc.MediaStream? localStream;
-  late webrtc.MediaStream? remoteStream;
+  webrtc.MediaStream? localStream;
+  webrtc.MediaStream? remoteStream;
 
   MediaConnection(super.peer, super.provider, super.payload) {
-    connectionId = payload?['connectionId'] ?? generateConnectId();
+    connectionId = payload?['connectionId'] ?? generateConnectId('mc');
     label = connectionId;
   }
 
@@ -50,7 +20,7 @@ class MediaConnection extends BaseConnection {
     if (ms != null) {
       ms.getTracks().forEach((track) => peerConnection?.addTrack(track, ms));
     }
-    _dataChannelListeners();
+    _setUpEventListeners();
   }
 
   void _sendIceCandidate(webrtc.RTCIceCandidate candidate) {
@@ -108,21 +78,35 @@ class MediaConnection extends BaseConnection {
   }
 
 
-  void addStream(webrtc.MediaStream remoteStream) {
-    print('Receiving stream $remoteStream');
+  void _setUpEventListeners() {
+    peerConnection?.onConnectionState = (state) {
+      print("onConnectionState ${state}");
+      switch (state) {
+        case webrtc.RTCPeerConnectionState.RTCPeerConnectionStateClosed:
+          super.emit<MediaConnection>(MediaConnectionEvent.Closed.type, this);
+          break;
+        case webrtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed:
+          super.emit<MediaConnection>(MediaConnectionEvent.Closed.type, this);
+          break;
+        case webrtc.RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
+          super.emit<MediaConnection>(MediaConnectionEvent.Closed.type, this);
+          break;
+        case webrtc.RTCPeerConnectionState.RTCPeerConnectionStateNew:
+          break;
+        case webrtc.RTCPeerConnectionState.RTCPeerConnectionStateConnecting:
+          super.emit<MediaConnection>(MediaConnectionEvent.Connecting.type, this);
+          break;
+        case webrtc.RTCPeerConnectionState.RTCPeerConnectionStateConnected:
+          super.emit<MediaConnection>(MediaConnectionEvent.Open.type, this);
+          break;
+      }
+    };
+    peerConnection?.onTrack = (track) {
+      print("Received remote stream");
+      remoteStream = track.streams[0];
 
-    this.remoteStream = remoteStream;
-    // provider?.emit('stream', null, remoteStream); // Should we call this `open`?
-    // emit('stream', null, remoteStream); // Should we call this `open`?
-    super.emit<webrtc.MediaStream>('stream', remoteStream); // Should we call this `open`?
-  }
-
-  void _dataChannelListeners() {
-      peerConnection?.onTrack = (track) {
-        print("Received remote stream");
-        final stream = track.streams[0];
-        addStream(stream);
-      };
+      super.emit<MediaConnection>(MediaConnectionEvent.Streaming.type, this);
+    };
   }
 
   Future<void> _makeOffer() async {
@@ -176,13 +160,15 @@ class MediaConnection extends BaseConnection {
     }
   }
 
-
   @override
   void dispose() {
     print("Cleaning up PeerConnection to $peer");
     if (peerConnection == null) {
       return;
     }
+    localStream?.dispose();
+    remoteStream?.dispose();
+
     peerConnection?.close();
     peerConnection?.dispose();
 
@@ -195,20 +181,23 @@ class MediaConnection extends BaseConnection {
 
   @override
   Future<void> makeOffer() async {
-    peerConnection = await webrtc.createPeerConnection(_DEFAULT_CONFIG ?? {});
-    localStream = await webrtc.navigator.mediaDevices.getUserMedia({ "video": true, "audio": true });
+    peerConnection = await webrtc.createPeerConnection(DEFAULT_CONFIG ?? {});
+    localStream = await webrtc.navigator.mediaDevices
+        .getUserMedia({"video": true, "audio": true});
     _initialize(localStream);
     _setUpListeners();
     _makeOffer();
     provider.emit<MediaConnection>(MediaConnectionEvent.Connection.type, this);
+    super.emit<MediaConnection>(MediaConnectionEvent.Connection.type, this);
   }
 
   @override
   Future<void> handleOffer(Message message) async {
-    provider.emit<MediaConnection>(MediaConnectionEvent.Connection.type, this);
-    peerConnection = await webrtc.createPeerConnection(_DEFAULT_CONFIG ?? {});
+    peerConnection = await webrtc.createPeerConnection(DEFAULT_CONFIG ?? {});
     _setUpListeners();
     _makeAnswer();
+    provider.emit<MediaConnection>(MediaConnectionEvent.Connection.type, this);
+    super.emit<MediaConnection>(MediaConnectionEvent.Connection.type, this);
   }
 
   @override
@@ -236,5 +225,4 @@ class MediaConnection extends BaseConnection {
 
   @override
   ConnectionType get type => ConnectionType.Media;
-
 }

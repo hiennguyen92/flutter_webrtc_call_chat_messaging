@@ -19,20 +19,25 @@ class CallScreen extends StatefulWidget {
 
 class _CallScreenState extends BaseStateful<CallScreen, CallViewModel>
     with WidgetsBindingObserver {
-
   final _localRenderer = RTCVideoRenderer();
   final _remoteRenderer = RTCVideoRenderer();
 
   @override
   void initState() {
     super.initState();
-    _localRenderer.initialize();
-    _remoteRenderer.initialize();
+    initRenderers();
 
     if (widget.arguments != null) {
       viewModel.initial(widget.arguments);
     }
+  }
 
+  initRenderers() async {
+    await _localRenderer.initialize();
+    _localRenderer.onFirstFrameRendered = () {
+      _localRenderer.srcObject = viewModel.getLocalStream();
+    };
+    await _remoteRenderer.initialize();
   }
 
   @override
@@ -59,22 +64,25 @@ class _CallScreenState extends BaseStateful<CallScreen, CallViewModel>
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    _localRenderer.dispose();
+    _remoteRenderer.dispose();
+  }
+
+  @override
   Widget buildBodyWidget(BuildContext context) {
     return Column(
       children: <Widget>[
         Flexible(
           child: Consumer<CallViewModel>(builder: (_, callViewModel, __) {
-            //var messages = chatViewModel.getMessages();
-            //print("messages: $messages");
             return Container(
-              decoration: BoxDecoration(
-                  border: Border.all(color: Colors.blueAccent)),
+              decoration:
+              BoxDecoration(border: Border.all(color: Colors.blueAccent)),
               child: SizedBox(
                 height: double.infinity,
                 width: double.infinity,
-                child: RTCVideoView(
-                  _localRenderer,
-                ),
+                child: RTCVideoView(_localRenderer),
               ),
             );
           }),
@@ -82,9 +90,19 @@ class _CallScreenState extends BaseStateful<CallScreen, CallViewModel>
         Padding(
           padding:
               EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
-        )
+        ),
+        Consumer<CallViewModel>(builder: (_, callViewModel, __) {
+            return Container(
+              decoration:
+              BoxDecoration(border: Border.all(color: Colors.blueAccent)),
+              child: SizedBox(
+                height: 100,
+                width: 100,
+                child: RTCVideoView(_localRenderer, mirror: true),
+              ),
+            );
+        }),
       ],
     );
   }
-
 }

@@ -29,7 +29,8 @@ enum MediaConnectionEvent {
   Open("open"),
   Connecting("connecting"),
   Closed("closed"),
-  Closing("closing");
+  Closing("closing"),
+  Streaming('streaming');
 
   const MediaConnectionEvent(this.type);
   final String type;
