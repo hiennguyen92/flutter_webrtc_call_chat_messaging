@@ -83,9 +83,18 @@ class AppWebRTC extends StreamEventEmitter {
           );
         }
         //Create Connection
-        DataConnection dataConnection = DataConnection(peerId, this, payload);
-        _addConnection(peerId, dataConnection: dataConnection);
-        dataConnection.handleOffer(message);
+        if (payload['type'] == ConnectionType.Media.type) {
+          MediaConnection mediaConnection = MediaConnection(peerId, this, payload);
+          _addConnection(peerId, mediaConnection: mediaConnection);
+          mediaConnection.handleOffer(message);
+        } else if (payload['type'] == ConnectionType.Data.type) {
+          DataConnection dataConnection = DataConnection(peerId, this, payload);
+          _addConnection(peerId, dataConnection: dataConnection);
+          dataConnection.handleOffer(message);
+        } else {
+          print("Received malformed connection type:${payload.type}");
+          return;
+        }
         break;
       case MessageType.Answer:
         if (payload == null) {
@@ -169,7 +178,6 @@ class AppWebRTC extends StreamEventEmitter {
       }
     }
 
-
     final dataConnection = DataConnection(peer, this, payload);
     dataConnection.makeOffer();
     _addConnection(peer, dataConnection: dataConnection);
@@ -194,7 +202,6 @@ class AppWebRTC extends StreamEventEmitter {
       }
     }
 
-
     final mediaConnection = MediaConnection(peer, this, payload);
     mediaConnection.makeOffer();
     _addConnection(peer, mediaConnection: mediaConnection);
@@ -203,13 +210,14 @@ class AppWebRTC extends StreamEventEmitter {
 
   /// Add a data/media connection to this peer. */
   /// connection: DataConnection / MediaConnection
-  void _addConnection(String peerId, {DataConnection? dataConnection, MediaConnection? mediaConnection}) {
+  void _addConnection(String peerId,
+      {DataConnection? dataConnection, MediaConnection? mediaConnection}) {
     late BaseConnection connection;
 
     if (dataConnection != null) {
       connection = dataConnection;
     }
-    if(mediaConnection != null) {
+    if (mediaConnection != null) {
       connection = mediaConnection;
     }
 
@@ -223,7 +231,6 @@ class AppWebRTC extends StreamEventEmitter {
 
     _connections[peerId]?.add(connection);
   }
-
 
   /// connection: DataConnection / MediaConnection
   void removeConnection(dynamic connection) {

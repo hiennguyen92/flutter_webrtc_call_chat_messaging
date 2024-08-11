@@ -53,9 +53,11 @@ class CallViewModel extends BaseViewModel<CallViewState> {
         print("ON OPEN MEDIA");
       }
     });
-    _mediaConnection?.on<MediaStream>("stream").listen((event) {
+    _mediaConnection?.on<MediaConnection>(MediaConnectionEvent.Streaming.type).listen((event) {
       if (mounted) {
         print("STREAM");
+        state.addRemoteStream(event.remoteStream);
+        notifyListeners();
       }
     });
   }
@@ -63,6 +65,10 @@ class CallViewModel extends BaseViewModel<CallViewState> {
 
   MediaStream? getLocalStream() {
     return state.localStream;
+  }
+
+  MediaStream? getRemoteStream() {
+    return state.remoteStream;
   }
 
   Future<void> getBack() async {

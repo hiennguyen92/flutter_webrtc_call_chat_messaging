@@ -91,17 +91,17 @@ class _CallScreenState extends BaseStateful<CallScreen, CallViewModel>
           padding:
               EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
         ),
-        Consumer<CallViewModel>(builder: (_, callViewModel, __) {
-            return Container(
-              decoration:
-              BoxDecoration(border: Border.all(color: Colors.blueAccent)),
-              child: SizedBox(
-                height: 100,
-                width: 100,
-                child: RTCVideoView(_localRenderer, mirror: true),
-              ),
-            );
-        }),
+        // Consumer<CallViewModel>(builder: (_, callViewModel, __) {
+        //     return Container(
+        //       decoration:
+        //       BoxDecoration(border: Border.all(color: Colors.blueAccent)),
+        //       child: SizedBox(
+        //         height: 100,
+        //         width: 100,
+        //         child: RTCVideoView(_localRenderer, mirror: true),
+        //       ),
+        //     );
+        // }),
       ],
     );
   }

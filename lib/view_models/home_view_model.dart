@@ -9,6 +9,7 @@ import 'package:flutter_webrtc_call_chat_messaging/view_states/home_view_state.d
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/app_events.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/app_webrtc.dart';
 import 'package:flutter_webrtc_call_chat_messaging/webrtc/data_connection.dart';
+import 'package:flutter_webrtc_call_chat_messaging/webrtc/media_connection.dart';
 
 class HomeViewModel extends BaseViewModel<HomeViewState> {
   late final NavigationService _navigationService;
@@ -47,7 +48,7 @@ class HomeViewModel extends BaseViewModel<HomeViewState> {
         .on<DataConnection>(DataConnectionEvent.Connection.type)
         .listen((conn) {
       if (mounted) {
-        print("nhan duoc connected");
+        print("nhan duoc  data connected");
         conn.on<DataConnection>(DataConnectionEvent.Open.type).listen((event) {
           print("DataConnection: OPEN");
         });
@@ -78,6 +79,17 @@ class HomeViewModel extends BaseViewModel<HomeViewState> {
         });
         conn.on<dynamic>(DataConnectionEvent.Binary.type).listen((event) {
           print("received binary: $event");
+        });
+      }
+    });
+    _appWebRTC.on<MediaConnection>(MediaConnectionEvent.Connection.type).listen((conn) {
+      if(mounted){
+        print("nhan duoc media connected");
+        conn.on<MediaConnection>(MediaConnectionEvent.Open.type).listen((event) {
+          print("MediaConnection: OPEN");
+        });
+        conn.on<MediaConnection>(MediaConnectionEvent.Streaming.type).listen((event) {
+          print("nhan duoc: stream");
         });
       }
     });

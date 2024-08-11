@@ -75,6 +75,9 @@ class MediaConnection extends BaseConnection {
           break;
       }
     };
+    peerConnection?.onTrack = (track) {
+
+    };
   }
 
 
@@ -188,16 +191,14 @@ class MediaConnection extends BaseConnection {
     _setUpListeners();
     _makeOffer();
     provider.emit<MediaConnection>(MediaConnectionEvent.Connection.type, this);
-    super.emit<MediaConnection>(MediaConnectionEvent.Connection.type, this);
   }
 
   @override
   Future<void> handleOffer(Message message) async {
+    provider.emit<MediaConnection>(MediaConnectionEvent.Connection.type, this);
     peerConnection = await webrtc.createPeerConnection(DEFAULT_CONFIG ?? {});
     _setUpListeners();
     _makeAnswer();
-    provider.emit<MediaConnection>(MediaConnectionEvent.Connection.type, this);
-    super.emit<MediaConnection>(MediaConnectionEvent.Connection.type, this);
   }
 
   @override
